@@ -513,13 +513,16 @@ const App = () => {
                 "message": "State is required"
               }
             },
-            "options": [
-              { "label": "New", "value": "new" },
-              { "label": "In Progress", "value": "in_progress" },
-              { "label": "Completed", "value": "completed" },
-              { "label": "Still completing", "value": "still_completed" },
-              { "label": "Almost completed", "value": "almost_completed" }
-            ],
+            // "options": [
+            //   { "label": "New", "value": "new" },
+            //   { "label": "In Progress", "value": "in_progress" },
+            //   { "label": "Completed", "value": "completed" },
+            //   { "label": "Still completing", "value": "still_completed" },
+            //   { "label": "Almost completed", "value": "almost_completed" }
+            // ],
+            "optionsSource":{
+              "function":"getCurrentStatus"
+            },
             "defaultValue": []
           },
           {
