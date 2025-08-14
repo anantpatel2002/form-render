@@ -46,11 +46,20 @@ export async function getFunctionByName<T extends FormFunction = FormFunction>(n
   }
 
   // Dev / fallback: dynamic import at runtime
-  const modulePath = meta.path;
+  let modulePath = meta.path;
+
+  // if (modulePath.startsWith('@/')) {
+  //   modulePath = modulePath.replace('@/', 'src/'); // Changes '@/...' to '../...'
+  // }
+
   if (!moduleCache.has(modulePath)) {
     // dynamic import — keep it constrained to known module paths to avoid bundler bloat
     moduleCache.set(modulePath, import(/* webpackChunkName: "formFunctions-[request]" */ modulePath as any));
+    console.log(moduleCache, "Cache 1");
+
   }
+  console.log(moduleCache, "cache 2");
+
   const mod = await moduleCache.get(modulePath) as any;
   const fn = (meta.exportName && mod[meta.exportName]) || mod.default || mod[name];
   if (!fn || typeof fn !== 'function') throw new Error(`Function ${name} not found in module ${modulePath}.`);
@@ -58,7 +67,7 @@ export async function getFunctionByName<T extends FormFunction = FormFunction>(n
   return fn as T;
 }
 
-export async function callFormFunction(name:string, args:any[] = [], context:any = {}) {
+export async function callFormFunction(name: string, args: any[] = [], context: any = {}) {
   const fn = await getFunctionByName(name);
   return fn(...args, context);
 }

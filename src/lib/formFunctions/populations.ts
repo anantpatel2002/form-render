@@ -1,4 +1,4 @@
-import { FieldOption } from "@/app/_components/form-renderer";
+import { FieldOption } from "@/types/forms";
 
 export const getPopulationGroups = (): FieldOption[] => [
     { value: 'grp123', label: 'Medical Research Group' },

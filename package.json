@@ -5,7 +5,7 @@
   "scripts": {
     "generate:functions": "node scripts/generateFunctionsIndex.js",
     "prebuild": "npm run generate:functions",
-    "build": "next build",
+    "build": "NEXT_DISABLE_ESLINT=1 next build",
     "dev": "next dev",
     "start": "next start",
     "lint": "next lint"

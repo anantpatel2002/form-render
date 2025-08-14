@@ -1,37 +1,76 @@
 {
   "getPopulationGroups": {
-    "path": "@/lib/formFunctions/populations", 
-    "exportName": "getPopulationGroups",      
+    "path": "@/lib/formFunctions/populations",
+    "exportName": "getPopulationGroups",
     "async": true,
     "cache": true,
-    "params": ["query", "context"]
+    "params": [
+      "query",
+      "context"
+    ]
   },
   "getPopulationSubgroups": {
     "path": "@/lib/formFunctions/populations",
     "exportName": "getPopulationSubgroups",
     "async": true,
     "cache": true,
-    "params": ["parentId", "query", "context"]
+    "params": [
+      "parentId",
+      "query",
+      "context"
+    ]
   },
   "getPopulations": {
     "path": "@/lib/formFunctions/populations",
     "exportName": "getPopulations",
     "async": true,
     "cache": true,
-    "params": ["subgroupId", "query", "context"]
+    "params": [
+      "subgroupId",
+      "query",
+      "context"
+    ]
   },
   "getDepartments": {
     "path": "@/lib/formFunctions/catalog",
     "exportName": "getDepartments",
     "async": true,
     "cache": true,
-    "params": ["query", "context"]
+    "params": [
+      "query",
+      "context"
+    ]
   },
   "getCategories": {
     "path": "@/lib/formFunctions/catalog",
     "exportName": "getCategories",
     "async": true,
     "cache": true,
-    "params": ["departmentId", "query", "context"]
+    "params": [
+      "departmentId",
+      "query",
+      "context"
+    ]
+  },
+  "getCountries": {
+    "path": "@/data/form-functions/location-functions",
+    "exportName": "getCountries",
+    "async": true,
+    "cache": true,
+    "params": [
+      "query",
+      "context"
+    ]
+  },
+  "getStatesByCountry": {
+    "path": "@/data/form-functions/location-functions",
+    "exportName": "getStatesByCountry",
+    "async": true,
+    "cache": true,
+    "params": [
+      "countryCode",
+      "query",
+      "context"
+    ]
   }
 }

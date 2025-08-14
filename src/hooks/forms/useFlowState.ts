@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { FieldOption, DynamicFlowField, FlowStep, FormData } from '@/types/forms';
-import { functionsMap } from '@/generated/functionsIndex';
+import { getFunctionByName } from '@/lib/dynamicFunctionLoader';
 
 interface FlowStepState {
   value: string;
@@ -38,63 +38,46 @@ export const useFlowState = (): UseFlowStateReturn => {
     step: FlowStep,
     dependsOnValue?: string
   ): Promise<FieldOption[]> => {
-    const functionName = step.optionsSource.function as keyof typeof functionsMap;
-    const loadFunction = functionsMap[functionName];
 
-    if (!loadFunction) {
-      console.warn(`Function ${functionName} not found`);
-      return [];
-    }
+    const functionName = step.optionsSource.function;
 
-    // Update loading state
     setFlowStates(prev => ({
       ...prev,
       [fieldName]: {
         ...prev[fieldName],
-        [step.id]: {
-          ...prev[fieldName]?.[step.id],
-          loading: true
-        }
-      }
+        [step.id]: { ...prev[fieldName]?.[step.id], loading: true },
+      },
     }));
 
     try {
-      // Simulate async call
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      const options = dependsOnValue
-        ? (loadFunction as any)(dependsOnValue)
-        : (loadFunction as any)();
+      // 1. Asynchronously get the function
+      const loadFunction = await getFunctionByName(functionName);
+      
+      // 2. Call it and return the options
+      const options = dependsOnValue ? await loadFunction(dependsOnValue) : await loadFunction();
 
       setFlowStates(prev => ({
         ...prev,
         [fieldName]: {
           ...prev[fieldName],
-          [step.id]: {
-            ...prev[fieldName]?.[step.id],
-            options: options || [],
-            loading: false
-          }
-        }
+          [step.id]: { ...prev[fieldName]?.[step.id], options, loading: false },
+        },
       }));
 
-      return options || [];
+      return options;
+
     } catch (error) {
-      console.error(`Error loading options for ${step.id}:`, error);
+      console.error(`Error loading or calling ${functionName}:`, error);
       setFlowStates(prev => ({
         ...prev,
         [fieldName]: {
           ...prev[fieldName],
-          [step.id]: {
-            ...prev[fieldName]?.[step.id],
-            options: [],
-            loading: false
-          }
-        }
+          [step.id]: { ...prev[fieldName]?.[step.id], options: [], loading: false },
+        },
       }));
       return [];
     }
-  }, []);
+  }, []); // `setFlowStates` is stable and doesn't need to be a dependency
 
   // Initialize flow field
   const initializeFlowField = useCallback((field: DynamicFlowField) => {

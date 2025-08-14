@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FieldOption, OptionsSource, Field, SectionField, RepeatableField, FormConfig, FormData } from '@/types/forms';
-import { functionsMap } from '@/generated/functionsIndex';
+import { getFunctionByName } from '@/lib/dynamicFunctionLoader';
 
 interface UseDynamicOptionsReturn {
   dynamicOptionsMap: { [key: string]: FieldOption[] };
@@ -12,18 +12,25 @@ export const useDynamicOptions = (formConfig: FormConfig, formData: FormData): U
   const [dynamicOptionsMap, setDynamicOptionsMap] = useState<{ [key: string]: FieldOption[] }>({});
   const [loadingOptionsMap, setLoadingOptionsMap] = useState<{ [key: string]: boolean }>({});
 
-  // Dynamic options loading function
+  // In useDynamicOptions.ts
+
   const loadOptions = useCallback(async (optionsSource: OptionsSource, dependsOnValue: any = null): Promise<FieldOption[]> => {
-    const callableFunction = functionsMap[optionsSource.function];
-    if (!callableFunction) {
-      console.warn(`Function ${optionsSource.function} not found in functionsMap`);
-      return [];
-    }
-    
     try {
-      return await callableFunction(dependsOnValue);
+      // 1. Asynchronously get the function using the loader
+      const callableFunction = await getFunctionByName(optionsSource.function);
+
+      // 2. The rest of the logic remains the same
+      if (!callableFunction) {
+        console.warn(`Function ${optionsSource.function} could not be loaded.`);
+        return [];
+      }
+
+      // Pass dependsOnValue and any other params from the config
+      const params = optionsSource.dependsOn ? [dependsOnValue, ...(optionsSource.params || [])] : (optionsSource.params || []);
+      return await callableFunction(...params);
+
     } catch (error) {
-      console.error(`Error calling ${optionsSource.function}:`, error);
+      console.error(`Error loading or calling ${optionsSource.function}:`, error);
       return [];
     }
   }, []);
@@ -48,7 +55,7 @@ export const useDynamicOptions = (formConfig: FormConfig, formData: FormData): U
           // Only reload if we have the dependency value or no dependency is required
           if (!field.optionsSource.dependsOn || dependsOnValue) {
             setLoadingOptionsMap((prev) => ({ ...prev, [name]: true }));
-            
+
             loadOptions(field.optionsSource, dependsOnValue)
               .then((opts) => {
                 setDynamicOptionsMap((prev) => ({ ...prev, [name]: opts }));

@@ -1,12 +1,21 @@
 "use client"
 import React from 'react';
-import { Field, SectionField, RepeatableField, DynamicFlowField, FormData, FormErrors } from '@/types/forms';
+import {
+  Field, SectionField, RepeatableField, DynamicFlowField,
+  FormData, FormErrors, DynamicFormRendererProps,
+  FieldOption
+} from '@/types/forms';
+
+// Import all field components
 import SectionFieldComponent from './fields/SectionField';
 import RepeatableFieldComponent from './fields/RepeatableField';
 import DynamicFlowFieldComponent from './fields/DynamicFlowField';
-import BaseField from './fields/BaseField';
+import { InputField, PasswordField, TextareaField } from './fields/TextFields';
+import { RadioGroupField, CheckboxField, SwitchField } from './fields/ChoiceFields';
+import { SelectField } from './fields/SelectFields';
 
-interface FieldRendererProps {
+// Re-export the props interface for convenience in other components
+export interface FieldRendererProps {
   field: Field;
   value: any;
   error?: string;
@@ -21,7 +30,15 @@ interface FieldRendererProps {
   toggleDropdown: (fieldName: string, forceClose?: boolean) => void;
   dynamicOptionsMap: { [key: string]: any[] };
   loadingOptionsMap: { [key: string]: boolean };
-  flowStates: any;
+  flowStates: {
+    [fieldName: string]: {
+      [stepId: string]: {
+        value: string;
+        options: FieldOption[];
+        loading: boolean;
+      }
+    }
+  };
   onFlowStepChange: (fieldName: string, stepId: string, value: string, field: DynamicFlowField) => void;
   disabled?: boolean;
   repeatableParent?: string;
@@ -29,45 +46,56 @@ interface FieldRendererProps {
 }
 
 const FieldRenderer: React.FC<FieldRendererProps> = (props) => {
-  const { field } = props;
+  const { field, shouldShowField, repeatableParent, repeatableIndex } = props;
 
   // Don't render if field should not be shown
-  if (!props.shouldShowField(field, props.repeatableParent, props.repeatableIndex)) {
+  if (!shouldShowField(field, repeatableParent, repeatableIndex)) {
     return null;
   }
 
   // Route to appropriate field component based on type
   switch (field.type) {
     case 'section':
-      return (
-        <SectionFieldComponent
-          {...props}
-          field={field as SectionField}
-        />
-      );
+      return <SectionFieldComponent {...props} field={field as SectionField} />;
 
     case 'repeatable':
-      return (
-        <RepeatableFieldComponent
-          {...props}
-          field={field as RepeatableField}
-        />
-      );
+      return <RepeatableFieldComponent {...props} field={field as RepeatableField} value={props.formData[field.name]} />;
 
     case 'dynamic-flow':
-      return (
-        <div className="p-6 bg-white rounded-lg border border-gray-200">
-          <DynamicFlowFieldComponent
-            {...props}
-            field={field as DynamicFlowField}
-          />
-        </div>
-      );
+      return <DynamicFlowFieldComponent {...props} field={field as DynamicFlowField} />;
+
+    case 'text':
+    case 'email':
+    case 'number':
+    case 'date':
+    case 'tel':
+      return <InputField {...props} />;
+
+    case 'password':
+      return <PasswordField {...props} />;
+
+    case 'textarea':
+      return <TextareaField {...props} />;
+
+    case 'radio':
+      return <RadioGroupField {...props} />;
+
+    case 'checkbox':
+      return <CheckboxField {...props} />;
+
+    case 'switch':
+      return <SwitchField {...props} />;
+
+    case 'select':
+    case 'multi-select':
+      return <SelectField {...props} />;
 
     default:
       return (
-        <div className="p-6 bg-white rounded-lg border border-gray-200">
-          <BaseField {...props} />
+        <div className="p-4 bg-yellow-100 border border-yellow-300 rounded-md">
+          <p className="text-sm text-yellow-800">
+            Unrecognized field type: <span className="font-bold">{field.type}</span>
+          </p>
         </div>
       );
   }
