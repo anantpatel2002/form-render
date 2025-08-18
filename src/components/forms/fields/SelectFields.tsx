@@ -1,118 +1,138 @@
-"use client"
-import React, { useRef, useEffect } from 'react';
-import { ChevronDown, Loader2, X } from 'lucide-react';
+"use client";
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown, X, Loader2 } from 'lucide-react';
 import BaseField from './BaseField';
 import { BaseField as BaseFieldType, FieldOption } from '@/types/forms';
+import { getFunctionByName } from '@/lib/dynamicFunctionLoader';
 
-interface SelectFieldProps {
-    field: BaseFieldType;
-    value: any;
-    error?: string;
-    onInputChange: (name: string, value: any) => void;
-    disabled?: boolean;
-    dynamicOptionsMap: { [key: string]: FieldOption[] };
-    loadingOptionsMap: { [key: string]: boolean };
-    openDropdowns: { [key: string]: boolean };
-    toggleDropdown: (fieldName: string, forceClose?: boolean) => void;
+interface SimplifiedFieldApi {
+    name: string;
+    state: { value: any };
+    handleChange: (value: any) => void;
 }
 
-export const SelectField: React.FC<SelectFieldProps> = (props) => {
-    const { field, value, error, onInputChange, disabled, dynamicOptionsMap, loadingOptionsMap, openDropdowns, toggleDropdown } = props;
-    const isMulti = field.type === 'multi-select';
+// The props now include the full form's data
+interface SelectFieldProps {
+    field: SimplifiedFieldApi;
+    error?: string;
+    isMulti?: boolean;
+    fieldConfig: BaseFieldType
+    // We need the full form data to get the dependency's value
+    formData: Record<string, any>;
+}
+
+export const SelectField: React.FC<SelectFieldProps> = ({ field, error, isMulti = false, fieldConfig, formData }) => {
+    const [dynamicOptions, setDynamicOptions] = useState<FieldOption[] | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const options = field.optionsSource ? dynamicOptionsMap[field.name] : field.options;
-    const isLoading = field.optionsSource ? loadingOptionsMap[field.name] : false;
-    const isOpen = openDropdowns[field.name] || false;
+    const { label, placeholder, options: staticOptions, optionsSource } = fieldConfig;
+    const dependencyField = optionsSource?.dependsOn as string;
+    const dependencyValue = dependencyField ? formData[dependencyField] : null;
 
-    // Handle click outside to close dropdown
+    // --- FIX #1: This hook now depends on the dependency's value ---
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                toggleDropdown(field.name, true); // force close
+        // Don't fetch if there's no source
+        if (!optionsSource) return;
+
+        // If it depends on a field, but that field has no value, do nothing.
+        if (dependencyField && !dependencyValue) {
+            setDynamicOptions([]); // Clear options if dependency is cleared
+            return;
+        }
+
+        setIsLoading(true);
+        const fetchOptions = async () => {
+            try {
+                const fetcher = await getFunctionByName(optionsSource.function);
+                // Pass the dependency's value to the fetcher function
+                const newOptions = await fetcher(dependencyValue);
+                setDynamicOptions(newOptions);
+            } catch (e) {
+                console.error(`Failed to fetch dynamic options for ${field.name}:`, e);
+                setDynamicOptions([]);
+            } finally {
+                setIsLoading(false);
             }
         };
-        if (isOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [field.name, isOpen, toggleDropdown]);
+        fetchOptions();
+    }, [optionsSource, dependencyField, dependencyValue, field.name]); // Re-run when the dependency's value changes
 
-    const handleSelect = (option: FieldOption) => {
+    // --- FIX #2: Add a hook to reset this field when its dependency changes ---
+    useEffect(() => {
+        // This isn't the initial render and the dependency has changed
+        // We must reset our own value to prevent stale data
+        if (field.state.value !== undefined) {
+            field.handleChange(undefined);
+        }
+        // We only want this to run when the dependencyValue changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dependencyValue]);
+
+    // Helper function to render the display value
+    const renderDisplayValue = () => {
+        const currentOptions = dynamicOptions !== null ? dynamicOptions : (staticOptions || []);
+
         if (isMulti) {
-            const currentValue = Array.isArray(value) ? value : [];
-            const newValue = currentValue.includes(option.value)
-                ? currentValue.filter((v: string) => v !== option.value)
-                : [...currentValue, option.value];
-            onInputChange(field.name, newValue);
+            const selectedOptions = currentOptions.filter(opt =>
+                Array.isArray(field.state.value) && field.state.value.includes(opt.value)
+            );
+            if (selectedOptions.length === 0) return <span className="text-gray-500">{placeholder || 'Select...'}</span>;
+            return selectedOptions.map(opt => (
+                <span key={opt.value} className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                    {opt.label}
+                    <X size={12} className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleSelect(opt.value); }} />
+                </span>
+            ));
+        }
+
+        const selectedOption = currentOptions.find(opt => opt.value === field.state.value);
+        return selectedOption ? selectedOption.label : <span className="text-gray-500">{placeholder || 'Select...'}</span>;
+    };
+
+    const handleSelect = (optionValue: string) => {
+        // This logic also remains the same
+        if (isMulti) {
+            const currentValue = Array.isArray(field.state.value) ? field.state.value : [];
+            const newValue = currentValue.includes(optionValue)
+                ? currentValue.filter((v: string) => v !== optionValue)
+                : [...currentValue, optionValue];
+            field.handleChange(newValue);
         } else {
-            onInputChange(field.name, option.value);
-            toggleDropdown(field.name, true); // force close on single select
+            field.handleChange(optionValue);
+            setIsOpen(false);
         }
     };
 
-    const getDisplayValue = () => {
-        if (isMulti) return null; // Multi-select displays pills instead
-        if (!value) return <span className="text-gray-500">{field.placeholder}</span>;
-        const selectedOption = options?.find(opt => opt.value === value);
-        return selectedOption ? selectedOption.label : <span className="text-gray-500">{field.placeholder}</span>;
-    };
-
-    const selectedMultiOptions = isMulti && Array.isArray(value)
-        ? options?.filter(opt => value.includes(opt.value)) || []
-        : [];
+    const optionsToRender = dynamicOptions !== null ? dynamicOptions : (staticOptions || []);
 
     return (
-        <BaseField field={field} error={error}>
+        <BaseField field={{ name: field.name, label }} error={error}>
             <div className="relative" ref={dropdownRef}>
                 <button
                     type="button"
-                    onClick={() => toggleDropdown(field.name)}
-                    disabled={disabled || isLoading}
-                    className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100"
+                    onClick={() => setIsOpen(!isOpen)}
+                    disabled={isLoading}
+                    className="relative w-full bg-white border border-gray-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none disabled:bg-gray-100"
                 >
-                    <span className="flex items-center flex-wrap gap-1">
-                        {isMulti ? (
-                            selectedMultiOptions.length > 0 ? (
-                                selectedMultiOptions.map(opt => (
-                                    <span key={opt.value} className="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full">
-                                        {opt.label}
-                                        <X size={12} className="cursor-pointer" onClick={(e) => { e.stopPropagation(); handleSelect(opt); }} />
-                                    </span>
-                                ))
-                            ) : (
-                                <span className="text-gray-500">{field.placeholder}</span>
-                            )
-                        ) : (
-                            getDisplayValue()
-                        )}
-                    </span>
+                    <span className="flex items-center flex-wrap gap-1 min-h-[20px]">{renderDisplayValue()}</span>
                     <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                        {isLoading ? <Loader2 size={16} className="text-gray-400 animate-spin" /> : <ChevronDown size={20} className="text-gray-400" />}
+                        {isLoading ? <Loader2 size={20} className="text-gray-400 animate-spin" /> : <ChevronDown size={20} className="text-gray-400" />}
                     </span>
                 </button>
 
-                {isOpen && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
-                        {options && options.length > 0 ? options.map((option) => {
-                            const isSelected = isMulti ? Array.isArray(value) && value.includes(option.value) : value === option.value;
-                            return (
-                                <li
-                                    key={option.value}
-                                    onClick={() => handleSelect(option)}
-                                    className={`cursor-pointer select-none relative py-2 pl-3 pr-9 text-gray-900 hover:bg-gray-100 ${isSelected ? 'font-semibold' : 'font-normal'}`}
-                                >
-                                    <span className="block truncate">{option.label}</span>
-                                    {isMulti && isSelected && (
-                                        <span className="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600">✓</span>
-                                    )}
-                                </li>
-                            );
-                        }) : (
-                            <li className="text-gray-500 text-center py-2 px-3">No options available</li>
-                        )}
+                {isOpen && !isLoading && (
+                    <ul className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto">
+                        {optionsToRender.map((option) => (
+                            <li
+                                key={option.value}
+                                onClick={() => handleSelect(option.value)}
+                                className="cursor-pointer select-none relative py-2 pl-3 pr-9 text-gray-900 hover:bg-gray-100"
+                            >
+                                {option.label}
+                            </li>
+                        ))}
                     </ul>
                 )}
             </div>

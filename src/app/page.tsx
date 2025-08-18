@@ -450,6 +450,7 @@ const App = () => {
         "name": "Pool Details",
         "type": "section",
         "title": "Pool Details",
+        "columns": 1,
         "collapsible": true,
         "fields": [
           {

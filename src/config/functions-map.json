@@ -72,5 +72,15 @@
       "query",
       "context"
     ]
+  },
+  "getCurrentStatus": {
+    "path": "@/lib/formFunctions/status",
+    "exportName": "getCurrentStatus",
+    "async": true,
+    "cache": true,
+    "params": [
+      "query",
+      "context"
+    ]
   }
 }

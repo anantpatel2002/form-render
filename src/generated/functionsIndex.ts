@@ -1,15 +1,17 @@
-/* AUTO-GENERATED - DO NOT EDIT */
-import type { FormFunction } from '@/types/formFunctions';
+// This file is auto-generated. Do not edit.
+
 import * as m0 from "@/lib/formFunctions/populations";
 import * as m1 from "@/lib/formFunctions/catalog";
 import * as m2 from "@/data/form-functions/location-functions";
+import * as m3 from "@/lib/formFunctions/status";
 
-export const functionsMap: Record<string, FormFunction> = {
-	"getPopulationGroups": m0.getPopulationGroups,
-	"getPopulationSubgroups": m0.getPopulationSubgroups,
-	"getPopulations": m0.getPopulations,
-	"getDepartments": m1.getDepartments,
-	"getCategories": m1.getCategories,
-	"getCountries": m2.getCountries,
-	"getStatesByCountry": m2.getStatesByCountry,
+export const functions = {
+  "getPopulationGroups": m0,
+  "getPopulationSubgroups": m0,
+  "getPopulations": m0,
+  "getDepartments": m1,
+  "getCategories": m1,
+  "getCountries": m2,
+  "getStatesByCountry": m2,
+  "getCurrentStatus": m3,
 };

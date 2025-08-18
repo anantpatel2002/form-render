@@ -1,12 +1,17 @@
-"use client"
+"use client";
 import React from 'react';
 import { Info, AlertCircle } from 'lucide-react';
-import { BaseField as BaseFieldType } from '@/types/forms';
 
+// A new, more flexible interface for the props
 interface BaseFieldProps {
-    field: BaseFieldType;
+    field: {
+        name: string;
+        label?: string;
+        helpText?: string;
+        tooltip?: string;
+    };
     error?: string;
-    children: React.ReactNode; // To render the actual input element
+    children: React.ReactNode;
 }
 
 const BaseField: React.FC<BaseFieldProps> = ({ field, error, children }) => {
@@ -21,7 +26,7 @@ const BaseField: React.FC<BaseFieldProps> = ({ field, error, children }) => {
                         <span className="ml-2 group relative">
                             <Info size={14} className="text-gray-400 cursor-pointer" />
                             <span
-                                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-xs p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-max max-w-xs p-2 text-xs text-white bg-gray-800 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
                                 role="tooltip"
                             >
                                 {tooltip}
@@ -31,7 +36,6 @@ const BaseField: React.FC<BaseFieldProps> = ({ field, error, children }) => {
                 </label>
             )}
 
-            {/* The actual input, select, textarea, etc. will be passed as children */}
             {children}
 
             {error && (
