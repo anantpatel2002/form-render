@@ -34,8 +34,8 @@ export interface BaseField {
   name: string;
   label?: string;
   type: 'text' | 'email' | 'password' | 'number' | 'date' | 'tel' | 'textarea' |
-    'select' | 'multi-select' | 'auto-complete' | 'radio' | 'checkbox' | 'switch' | 
-    'color' | 'file' | 'section' | 'repeatable' | 'dynamic-flow';
+  'select' | 'multi-select' | 'auto-complete' | 'radio' | 'checkbox' | 'switch' |
+  'color' | 'file' | 'section' | 'repeatable' | 'dynamic-flow';
   placeholder?: string;
   helpText?: string;
   tooltip?: string;
@@ -109,4 +109,20 @@ export interface FieldRenderProps {
   onChange: (value: any) => void;
   onBlur: () => void;
   disabled?: boolean;
+}
+
+export interface CustomValidationRule {
+  function: string;
+  message: string;
+}
+
+// This is the main interface that collects all possible validation rules
+export interface ValidationRules {
+  required?: ValidationRule;
+  minLength?: ValidationRule;
+  maxLength?: ValidationRule;
+  min?: ValidationRule;
+  max?: ValidationRule;
+  pattern?: ValidationRule;
+  custom?: CustomValidationRule;
 }

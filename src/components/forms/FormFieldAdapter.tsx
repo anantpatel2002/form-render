@@ -3,7 +3,7 @@ import React from 'react';
 import { Field as FieldConfig, RepeatableField as RepeatableFieldConfig, SectionField, DynamicFlowField } from '@/types/forms';
 import { useDynamicFlow } from '@/hooks/forms/useDynamicFlow';
 
-import { InputField, PasswordField, TextareaField } from './fields/TextFields';
+import { InputField, PasswordField, TextareaField, DateField, NumberField } from './fields/TextFields';
 import { RadioGroupField, SwitchField, CheckboxGroupField, SingleCheckboxField } from './fields/ChoiceFields';
 import { SelectField } from './fields/SelectFields';
 import DynamicFlowFieldComponent from './fields/DynamicFlowField';
@@ -101,10 +101,13 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                 switch (fieldConfig.type) {
                     case 'text':
                     case 'email':
-                    case 'number':
-                    case 'date':
                     case 'tel':
                         return <InputField {...commonProps} />;
+                    case 'date':
+                        return <DateField {...commonProps} />;
+
+                    case 'number':
+                        return <NumberField {...commonProps} />;
                     case 'password':
                         return <PasswordField {...commonProps} />;
                     case 'textarea':
