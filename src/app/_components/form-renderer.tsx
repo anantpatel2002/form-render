@@ -7,7 +7,6 @@ import {
     Clock, Palette, Book, Heart, Star, CheckCircle,
     RefreshCw
 } from 'lucide-react';
-import { functionsMap } from '@/generated/functionsIndex';
 
 // Base field validation types
 interface ValidationRule {

@@ -1,22 +1,43 @@
 "use client";
 import { useCallback } from 'react';
-import { Field as FieldConfig, ShowWhen } from '@/types/forms';
+import { Field as FieldConfig } from '@/types/forms';
 
-const checkCondition = (condition: { field: string, operator: string, value: any }, formData: Record<string, any>): boolean => {
+// This is a simple utility to get a value from a nested object
+const get = (obj: any, path: string, defaultValue: any = undefined) => {
+    const travel = (regexp: RegExp) =>
+        String.prototype.split
+            .call(path, regexp)
+            .filter(Boolean)
+            .reduce((res, key) => (res !== null && res !== undefined ? res[key] : res), obj);
+    const result = travel(/[,[\]]+?/) || travel(/[,[\].]+?/);
+    return result === undefined || result === obj ? defaultValue : result;
+};
+
+const checkCondition = (
+    condition: { field: string, operator: string, value: any },
+    localData: Record<string, any>,
+    globalData: Record<string, any>
+): boolean => {
     const { field, operator, value } = condition;
-    const fieldValue = formData[field];
+
+    let fieldValue = get(localData, field);
+
+    if (fieldValue === undefined) {
+        fieldValue = get(globalData, field);
+    }
 
     switch (operator) {
         case '===':
-        case 'eq': // Handle 'eq' as an alias for '==='
+        case 'eq':
             return fieldValue === value;
         case '!==':
-        case 'neq': // Handle 'neq' as an alias for '!=='
+        case 'neq':
             return fieldValue !== value;
         case 'includes':
-            return Array.isArray(fieldValue) && fieldValue.includes(value);
+        case 'in':
+            return Array.isArray(value) && value.includes(fieldValue);
         case 'not-includes':
-            return Array.isArray(fieldValue) && !fieldValue.includes(value);
+            return Array.isArray(value) && !value.includes(fieldValue);
         case 'is-truthy':
             return !!fieldValue;
         case 'is-falsy':
@@ -28,7 +49,11 @@ const checkCondition = (condition: { field: string, operator: string, value: any
 };
 
 export const useConditionalLogic = () => {
-    const shouldShowField = useCallback((fieldConfig: FieldConfig, formData: Record<string, any>): boolean => {
+    const shouldShowField = useCallback((
+        fieldConfig: FieldConfig,
+        localData: Record<string, any>,
+        globalData: Record<string, any>
+    ): boolean => {
         if (!fieldConfig.showWhen) {
             return true;
         }
@@ -36,11 +61,11 @@ export const useConditionalLogic = () => {
         const { logic = 'and', conditions } = fieldConfig.showWhen;
 
         if (logic === 'and') {
-            return conditions.every(condition => checkCondition(condition, formData));
+            return conditions.every(condition => checkCondition(condition, localData, globalData));
         }
 
         if (logic === 'or') {
-            return conditions.some(condition => checkCondition(condition, formData));
+            return conditions.some(condition => checkCondition(condition, localData, globalData));
         }
 
         return true;

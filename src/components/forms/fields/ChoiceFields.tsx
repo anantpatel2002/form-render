@@ -40,10 +40,42 @@ export const RadioGroupField: React.FC<ChoiceFieldProps> = ({ field, label, erro
     );
 };
 
-// Single Checkbox Field
-export const CheckboxField: React.FC<ChoiceFieldProps> = ({ field, label, error }) => {
+
+export const CheckboxGroupField: React.FC<ChoiceFieldProps> = ({ field, label, error, options = [] }) => {
+    const handleChange = (optionValue: string) => {
+        // Ensure we are always working with an array
+        const currentValue = Array.isArray(field.state.value) ? field.state.value : [];
+        const newValue = currentValue.includes(optionValue)
+            ? currentValue.filter((v: string) => v !== optionValue) // Remove item
+            : [...currentValue, optionValue]; // Add item
+        field.handleChange(newValue);
+    };
+
     return (
-        // BaseField is used differently here, with an empty label prop
+        <BaseField field={{ name: field.name, label }} error={error}>
+            <div className="space-y-2">
+                {options.map((option) => (
+                    <label key={option.value} className="flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            name={`${field.name}-${option.value}`} // Unique name for each checkbox
+                            value={option.value}
+                            checked={(Array.isArray(field.state.value) && field.state.value.includes(option.value)) || false}
+                            onChange={() => handleChange(option.value)}
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="ml-3 text-sm text-gray-700">{option.label}</span>
+                    </label>
+                ))}
+            </div>
+        </BaseField>
+    );
+};
+
+// --- RENAMED for clarity ---
+// Renders a single checkbox, often used as a boolean toggle
+export const SingleCheckboxField: React.FC<ChoiceFieldProps> = ({ field, label, error }) => {
+    return (
         <BaseField field={{ name: field.name }} error={error}>
             <div className="flex items-center">
                 <input

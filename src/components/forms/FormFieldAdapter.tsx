@@ -4,7 +4,7 @@ import { Field as FieldConfig, RepeatableField as RepeatableFieldConfig, Section
 import { useDynamicFlow } from '@/hooks/forms/useDynamicFlow';
 
 import { InputField, PasswordField, TextareaField } from './fields/TextFields';
-import { RadioGroupField, CheckboxField, SwitchField } from './fields/ChoiceFields';
+import { RadioGroupField, SwitchField, CheckboxGroupField, SingleCheckboxField } from './fields/ChoiceFields';
 import { SelectField } from './fields/SelectFields';
 import DynamicFlowFieldComponent from './fields/DynamicFlowField';
 import { createValidator } from '@/utils/forms/validation-adapter';
@@ -16,13 +16,14 @@ interface FormFieldAdapterProps {
     fieldConfig: FieldConfig;
     dynamicFlow: any;
     // Add the new props here
-    shouldShowField: (fieldConfig: FieldConfig, formData: Record<string, any>) => boolean;
-    formData: Record<string, any>;
+    shouldShowField: (fieldConfig: FieldConfig, localData: Record<string, any>, globalData: Record<string, any>) => boolean;
+    localData: Record<string, any>;
+    globalData: Record<string, any>;
 }
 
-const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, formData }) => {
+const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, localData, globalData }) => {
 
-    if (!shouldShowField(fieldConfig, formData)) {
+    if (!shouldShowField(fieldConfig, localData, globalData)) {
         return null;
     }
 
@@ -41,7 +42,8 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                             dynamicFlow={dynamicFlow}
                             // Pass down the props
                             shouldShowField={shouldShowField}
-                            formData={formData}
+                            localData={localData}
+                            globalData={globalData}
                         />
                     ))}
                 </div>
@@ -77,7 +79,8 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                 fieldConfig={fieldConfig as RepeatableFieldConfig}
                 dynamicFlow={dynamicFlow}
                 shouldShowField={shouldShowField}
-                formData={formData}
+                localData={localData} // Pass the same local context down
+                globalData={globalData}
             />
         );
     }
@@ -109,7 +112,11 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                     case 'radio':
                         return <RadioGroupField {...commonProps} options={fieldConfig.options} />;
                     case 'checkbox':
-                        return <CheckboxField {...commonProps} />;
+                        // If options are provided, render a group. Otherwise, render a single checkbox.
+                        if (fieldConfig.options && fieldConfig.options.length > 0) {
+                            return <CheckboxGroupField {...commonProps} options={fieldConfig.options} />;
+                        }
+                        return <SingleCheckboxField {...commonProps} />;
                     case 'switch':
                         return <SwitchField {...commonProps} />;
                     case 'select':
@@ -119,7 +126,7 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                                 error={commonProps.error}
                                 fieldConfig={fieldConfig}
                                 // Pass the form data through
-                                formData={formData}
+                                formData={globalData}
                             />
                         );
                     case 'multi-select':
@@ -130,7 +137,7 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                                 fieldConfig={fieldConfig}
                                 isMulti={true}
                                 // Pass the form data through
-                                formData={formData}
+                                formData={globalData}
                             />
                         );
                     case 'file':

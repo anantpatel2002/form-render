@@ -6,7 +6,7 @@ import BaseField from './BaseField';
 
 // Import all the UI components that can be used inside a repeatable section
 import { InputField, PasswordField, TextareaField } from './TextFields';
-import { RadioGroupField, CheckboxField, SwitchField } from './ChoiceFields';
+import { CheckboxGroupField, RadioGroupField, SingleCheckboxField, SwitchField } from './ChoiceFields';
 import { SelectField } from './SelectFields';
 import { FileField } from './FileField';
 import DynamicFlowFieldComponent from './DynamicFlowField';
@@ -16,8 +16,9 @@ interface RepeatableFieldProps {
     fieldConfig: RepeatableFieldConfig;
     dynamicFlow: any;
     error?: string;
-    shouldShowField: (fieldConfig: FieldConfig, formData: Record<string, any>) => boolean;
-    formData: Record<string, any>;
+    shouldShowField: (fieldConfig: FieldConfig, localData: Record<string, any>, globalData: Record<string, any>) => boolean;
+    localData: Record<string, any>;
+    globalData: Record<string, any>;
 }
 
 const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
@@ -26,7 +27,8 @@ const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
     dynamicFlow,
     error,
     shouldShowField,
-    formData
+    localData,
+    globalData
 }) => {
     const createDefaultItem = () => {
         const defaultItem: Record<string, any> = {};
@@ -73,7 +75,7 @@ const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                                         {fieldConfig.fields.map(subFieldConfig => {
-                                            if (!shouldShowField(subFieldConfig, formData)) {
+                                            if (!shouldShowField(subFieldConfig, item, globalData)) {
                                                 return null;
                                             }
 
@@ -103,13 +105,17 @@ const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
                                                             case 'radio':
                                                                 return <RadioGroupField {...commonProps} options={subFieldConfig.options} />;
                                                             case 'checkbox':
-                                                                return <CheckboxField {...commonProps} />;
+                                                                // If options are provided, render a group. Otherwise, render a single checkbox.
+                                                                if (subFieldConfig.options && subFieldConfig.options.length > 0) {
+                                                                    return <CheckboxGroupField {...commonProps} options={subFieldConfig.options} />;
+                                                                }
+                                                                return <SingleCheckboxField {...commonProps} />;
                                                             case 'switch':
                                                                 return <SwitchField {...commonProps} />;
                                                             case 'select':
-                                                                return <SelectField {...commonProps} fieldConfig={subFieldConfig} formData={formData} />;
+                                                                return <SelectField {...commonProps} fieldConfig={subFieldConfig} formData={globalData} />;
                                                             case 'multi-select':
-                                                                return <SelectField {...commonProps} fieldConfig={subFieldConfig} formData={formData} isMulti={true} />;
+                                                                return <SelectField {...commonProps} fieldConfig={subFieldConfig} formData={globalData} isMulti={true} />;
                                                             case 'file':
                                                                 return <FileField {...commonProps} />;
                                                             case 'dynamic-flow':
