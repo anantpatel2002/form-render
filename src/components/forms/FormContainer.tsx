@@ -9,6 +9,7 @@ interface FormContainerProps {
   isSubmitting: boolean;
   children: React.ReactNode;
   onSubmit: (e: React.FormEvent) => void;
+  isValid:boolean;
   currentStep?: number;
   isWizard?: boolean;
   isFirstStep?: boolean;
@@ -29,7 +30,8 @@ const FormContainer: React.FC<FormContainerProps> = ({
   children,
   onSubmit,
   onNext,
-  onPrevious
+  onPrevious,
+  isValid = false
 }) => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
@@ -79,7 +81,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
         </div>
       )}
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-6">
+      <form onSubmit={(e)=> {e.preventDefault(); onSubmit(e)}} className="mt-6 space-y-6">
         {children}
 
         <div className="mt-8 pt-5 flex justify-between items-center">
@@ -100,7 +102,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
               <button
                 type={isLastStep ? 'submit' : 'button'}
                 onClick={isLastStep ? undefined : onNext} // The 'onClick' now passes the event
-                disabled={isLastStep ? isSubmitting : false}
+                disabled={isLastStep ? !isValid || isSubmitting : false}
                 className="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
                 {isLastStep ? (
@@ -117,7 +119,7 @@ const FormContainer: React.FC<FormContainerProps> = ({
             // Non-wizard submit button (no changes)
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isValid}
               className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
             >
               {formConfig.submitButtonLabel || 'Submit'}

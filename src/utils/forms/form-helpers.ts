@@ -1,4 +1,4 @@
-import { FormConfig, FormData } from '@/types/forms';
+import { Field as FieldConfig, FormConfig, FormData, RepeatableField, SectionField } from '@/types/forms';
 
 // Handle form submission
 export const handleFormSubmission = async (
@@ -49,4 +49,43 @@ export const getPasswordStrength = (password: string, minLength: number): Passwo
     label: labels[strength] || 'Very Weak',
     color: colors[strength] || 'bg-gray-300'
   };
+};
+
+// Helper to generate a default item for a repeatable field
+const createDefaultRepeatableItem = (fields: FieldConfig[]) => {
+  const defaultItem: Record<string, any> = {};
+  fields.forEach(field => {
+    defaultItem[field.name] = field.defaultValue ?? '';
+  });
+  return defaultItem;
+};
+
+// The getDefaultValues function now handles min validation for repeatable fields.
+export const getDefaultValues = (fields: FieldConfig[]): Record<string, any> => {
+  const defaultValues: Record<string, any> = {};
+
+  const processFields = (fieldList: FieldConfig[]) => {
+    fieldList.forEach(field => {
+      if (field.type === 'section') {
+        processFields((field as SectionField).fields);
+      } else if (field.type === 'repeatable') {
+        const minItems = field.validation?.min?.value ?? 0;
+        // If a minimum is set, create an array with that many default items.
+        if (minItems > 0) {
+          defaultValues[field.name] = Array.from(
+            { length: minItems },
+            () => createDefaultRepeatableItem((field as RepeatableField).fields)
+          );
+        } else {
+          // Otherwise, use the provided defaultValue or an empty array.
+          defaultValues[field.name] = field.defaultValue ?? [];
+        }
+      } else if ('defaultValue' in field) {
+        defaultValues[field.name] = field.defaultValue;
+      }
+    });
+  };
+
+  processFields(fields);
+  return defaultValues;
 };

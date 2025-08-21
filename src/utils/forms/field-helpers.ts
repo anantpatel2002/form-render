@@ -22,3 +22,29 @@ export const findFieldByName = (fields: Field[], name: string): Field | null => 
     }
     return null;
 };
+
+/**
+ * Recursively flattens an array of fields, extracting all non-structural fields
+ * from sections and repeatable sections.
+ * @param fields - The array of fields to process.
+ * @returns {Field[]} - A flat array of all root fields.
+ */
+export const getRootFields = (fields: Field[]): Field[] => {
+  const flattenedFields: Field[] = [];
+
+  const recurse = (fieldList: Field[]) => {
+    for (const field of fieldList) {
+      if (field.type === 'section') {
+        recurse((field as SectionField).fields);
+      } else if (field.type === 'repeatable') {
+        // We only care about the template fields for validation logic
+        recurse((field as RepeatableField).fields);
+      } else {
+        flattenedFields.push(field);
+      }
+    }
+  };
+
+  recurse(fields);
+  return flattenedFields;
+};

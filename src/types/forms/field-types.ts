@@ -29,6 +29,12 @@ export interface OptionsSource {
   params?: string[];
 }
 
+export interface CrossValidationRule {
+  rule: string;
+  dependsOn: string[];
+  message: string;
+}
+
 // Base field interface
 export interface BaseField {
   name: string;
@@ -50,6 +56,7 @@ export interface BaseField {
   preview?: boolean;
   layout?: 'grid' | 'list';
   columns?: number;
+  crossValidation?: CrossValidationRule[];
 }
 
 // Section field type
@@ -71,7 +78,7 @@ export interface RepeatableField extends Omit<BaseField, 'type'> {
   removeButtonLabel?: string;
   maxItems?: number;
   validation?: FieldValidation;
-  fields: Omit<Field, 'showWhen'>[];
+  fields: Field[];
 }
 
 // Flow step for dynamic flow fields

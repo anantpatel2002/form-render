@@ -1,3 +1,4 @@
+import { useForm } from '@tanstack/react-form';
 import { Field } from './field-types';
 import { FormValidationConfig } from './validation-types';
 
@@ -97,3 +98,6 @@ export interface DynamicFormRendererProps {
   disabled?: boolean;
   loading?: boolean;
 }
+
+const _dummyForm = useForm({ defaultValues: {} as Record<string, any> })
+export type FormInstance = typeof _dummyForm;

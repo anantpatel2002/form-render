@@ -1,101 +1,71 @@
 "use client";
 import React from 'react';
-import { Field as FieldConfig, RepeatableField as RepeatableFieldConfig, SectionField, DynamicFlowField } from '@/types/forms';
-import { useDynamicFlow } from '@/hooks/forms/useDynamicFlow';
-
-import { InputField, PasswordField, TextareaField, DateField, NumberField } from './fields/TextFields';
-import { RadioGroupField, SwitchField, CheckboxGroupField, SingleCheckboxField } from './fields/ChoiceFields';
-import { SelectField } from './fields/SelectFields';
-import DynamicFlowFieldComponent from './fields/DynamicFlowField';
+import { Field as FieldConfig, SectionField, RepeatableField, DynamicFlowField } from '@/types/forms/field-types';
 import { createValidator } from '@/utils/forms/validation-adapter';
-import RepeatableFieldComponent from './fields/RepeatableField';
+
+// Import all your field components
+import { InputField, PasswordField, TextareaField, DateField, NumberField } from './fields/TextFields';
+import { RadioGroupField, SingleCheckboxField, CheckboxGroupField, SwitchField } from './fields/ChoiceFields';
+import { SelectField } from './fields/SelectFields';
 import { FileField } from './fields/FileField';
+import RepeatableFieldComponent from './fields/RepeatableField';
+import DynamicFlowFieldComponent from './fields/DynamicFlowField';
+import { FormInstance } from '@/types/forms';
 
 interface FormFieldAdapterProps {
-    form: any;
+    form: FormInstance;
     fieldConfig: FieldConfig;
     dynamicFlow: any;
-    // Add the new props here
     shouldShowField: (fieldConfig: FieldConfig, localData: Record<string, any>, globalData: Record<string, any>) => boolean;
     localData: Record<string, any>;
     globalData: Record<string, any>;
 }
 
 const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, localData, globalData }) => {
-
     if (!shouldShowField(fieldConfig, localData, globalData)) {
         return null;
     }
 
+    // Handle structural components first, as they don't use the 'useField' hook directly.
     if (fieldConfig.type === 'section') {
         const sectionConfig = fieldConfig as SectionField;
         return (
-            <fieldset className="p-4 mb-4 border border-gray-200 rounded-lg">
-                <legend className="text-lg font-semibold text-gray-800 px-2">{sectionConfig.title}</legend>
-                {sectionConfig.description && <p className="text-sm text-gray-500 mt-1 mb-4 px-2">{sectionConfig.description}</p>}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+            <div className="p-6 border border-gray-200 rounded-lg bg-white shadow-sm">
+                <div className="mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">{sectionConfig.title}</h3>
+                    {sectionConfig.description && <p className="text-sm text-gray-500 mt-1">{sectionConfig.description}</p>}
+                </div>
+                <div className={`grid grid-cols-1 md:grid-cols-${sectionConfig.columns || 1} gap-x-6 gap-y-4`}>
                     {sectionConfig.fields.map(childField => (
                         <FormFieldAdapter
                             key={childField.name}
                             form={form}
                             fieldConfig={childField}
                             dynamicFlow={dynamicFlow}
-                            // Pass down the props
                             shouldShowField={shouldShowField}
                             localData={localData}
                             globalData={globalData}
                         />
                     ))}
                 </div>
-            </fieldset>
+            </div>
         );
     }
 
-    // Handle 'dynamic-flow' fields
-    if (fieldConfig.type === 'dynamic-flow') {
-        return (
-            <form.Field
-                name={fieldConfig.name as any}
-                children={(field: any) => (
-                    <DynamicFlowFieldComponent
-                        field={field}
-                        // FIX #1: Use a type assertion to fix the type mismatch
-                        fieldConfig={fieldConfig as DynamicFlowField}
-                        flowState={dynamicFlow.flowsState[fieldConfig.name]}
-                        initializeFlow={dynamicFlow.initializeFlow}
-                        handleStepChange={dynamicFlow.handleStepChange}
-                        error={field.state.meta.errors?.[0]}
-                    />
-                )}
-            />
-        );
-    }
-
-    // Handle other complex types
-    if (fieldConfig.type === 'repeatable') {
-        return (
-            <RepeatableFieldComponent
-                form={form}
-                fieldConfig={fieldConfig as RepeatableFieldConfig}
-                dynamicFlow={dynamicFlow}
-                shouldShowField={shouldShowField}
-                localData={localData} // Pass the same local context down
-                globalData={globalData}
-            />
-        );
-    }
-
-    // For all simple fields, render the <form.Field> wrapper
     return (
         <form.Field
-            name={fieldConfig.name as any}
-            validators={{ onChange: createValidator(fieldConfig.validation) }}
-            children={(field: any) => {
+            name={fieldConfig.name}
+            validators={{
+                onChange: createValidator(fieldConfig.validation)
+            }}
+        >
+
+            {(field: any) => {
                 const commonProps = {
                     field,
                     label: fieldConfig.label || '',
                     error: field.state.meta.errors?.[0],
-                    placeholder: fieldConfig.placeholder,
+                    placeholder: 'placeholder' in fieldConfig ? fieldConfig.placeholder : undefined,
                 };
 
                 switch (fieldConfig.type) {
@@ -105,7 +75,6 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                         return <InputField {...commonProps} />;
                     case 'date':
                         return <DateField {...commonProps} />;
-
                     case 'number':
                         return <NumberField {...commonProps} />;
                     case 'password':
@@ -115,7 +84,6 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                     case 'radio':
                         return <RadioGroupField {...commonProps} options={fieldConfig.options} />;
                     case 'checkbox':
-                        // If options are provided, render a group. Otherwise, render a single checkbox.
                         if (fieldConfig.options && fieldConfig.options.length > 0) {
                             return <CheckboxGroupField {...commonProps} options={fieldConfig.options} />;
                         }
@@ -123,34 +91,26 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                     case 'switch':
                         return <SwitchField {...commonProps} />;
                     case 'select':
-                        return (
-                            <SelectField
-                                field={commonProps.field}
-                                error={commonProps.error}
-                                fieldConfig={fieldConfig}
-                                // Pass the form data through
-                                formData={globalData}
-                            />
-                        );
+                        return <SelectField {...commonProps} fieldConfig={fieldConfig} formData={globalData} />;
                     case 'multi-select':
-                        return (
-                            <SelectField
-                                field={commonProps.field}
-                                error={commonProps.error}
-                                fieldConfig={fieldConfig}
-                                isMulti={true}
-                                // Pass the form data through
-                                formData={globalData}
-                            />
-                        );
+                        return <SelectField {...commonProps} fieldConfig={fieldConfig} isMulti={true} formData={globalData} />;
                     case 'file':
                         return <FileField {...commonProps} />;
+                    case 'repeatable':
+                        // RepeatableField manages its own fields, so it doesn't use the top-level 'field' instance
+                        return <RepeatableFieldComponent form={form} fieldConfig={fieldConfig as RepeatableField} dynamicFlow={dynamicFlow} error={form.getFieldMeta(fieldConfig.name as any)?.errors[0]} shouldShowField={shouldShowField} localData={localData} globalData={globalData} />;
+                    case 'dynamic-flow':
+                        return <DynamicFlowFieldComponent field={field} fieldConfig={fieldConfig as DynamicFlowField} flowState={dynamicFlow.flowsState[field.name]} initializeFlow={dynamicFlow.initializeFlow} handleStepChange={dynamicFlow.handleStepChange} error={commonProps.error} />;
                     default:
-                        return <p className="text-red-500">Unsupported field type: {fieldConfig.type}</p>;
+                        return <p>Unsupported field type: {fieldConfig.type}</p>;
                 }
             }}
-        />
-    );
+
+
+        </form.Field>
+    )
+
+
 };
 
 export default FormFieldAdapter;

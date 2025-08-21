@@ -10,6 +10,7 @@ import { CheckboxGroupField, RadioGroupField, SingleCheckboxField, SwitchField }
 import { SelectField } from './SelectFields';
 import { FileField } from './FileField';
 import DynamicFlowFieldComponent from './DynamicFlowField';
+import { createValidator } from '@/utils/forms/validation-adapter';
 
 interface RepeatableFieldProps {
     form: any;
@@ -42,16 +43,6 @@ const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
     return (
         <form.Field
             name={fieldConfig.name as any}
-            validator={(value: any[]) => {
-                const min = fieldConfig.validation?.min?.value;
-                if (min && (!value || value.length < min)) {
-                    return fieldConfig.validation?.min?.message;
-                }
-                const max = fieldConfig.validation?.max?.value;
-                if (max && value && value.length > max) {
-                    return fieldConfig.validation?.max?.message;
-                }
-            }}
             children={(field: any) => {
                 const items = field.state.value || [];
                 const minItems = fieldConfig.validation?.min?.value ?? 0;
@@ -82,6 +73,7 @@ const RepeatableFieldComponent: React.FC<RepeatableFieldProps> = ({
                                             return (
                                                 <form.Field
                                                     key={subFieldConfig.name}
+                                                    validator={{ onChange: createValidator(subFieldConfig.validation), onBlur: createValidator(subFieldConfig.validation) }}
                                                     name={`${fieldConfig.name}[${index}].${subFieldConfig.name}`}
                                                     children={(subField: any) => {
                                                         const commonProps = {
