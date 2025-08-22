@@ -16,24 +16,26 @@ export const useStepNavigation = (form: any, formConfig: FormConfig) => {
 
   const handleNext = useCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    
-   // 1. Use our new helper to get a flat list of all fields to validate.
-    const fieldsToValidate = getRootFields(currentStepFields);
-    console.log(fieldsToValidate);
-    
 
-    // 2. Trigger validation for all fields on the current step in parallel.
+    // 1. Get the current form values.
+    const currentValues = form.state.values;
+
+    // 2. Use our new helper to get a flat list of all fields, including indexed repeatable fields.
+    const fieldsToValidate = getRootFields(currentStepFields, currentValues);
+
+    // console.log("fieldsToValidate",fieldsToValidate);
+    
+    // 3. Trigger validation for all these fields.
     await Promise.all(
-      fieldsToValidate.map(field => form.validateField(field.name as any, 'change'))
+      fieldsToValidate.map(field => form.validateField(field.name as any, 'submit'))
     );
 
-    // 3. Check for errors directly from the form's state.
+    // 4. Check for errors.
     const hasErrors = fieldsToValidate.some(field => {
       const meta = form.getFieldMeta(field.name as any);
       return (meta?.errors?.length ?? 0) > 0;
     });
-    
-    // 4. Only proceed if there are no errors.
+
     if (!hasErrors) {
       setCurrentStep(prev => Math.min(prev + 1, (formConfig.steps?.length ?? 1) - 1));
     }

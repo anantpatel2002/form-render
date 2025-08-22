@@ -14,13 +14,14 @@ interface FormFieldAdapterProps {
     form: FormInstance;
     fieldConfig: FieldConfig;
     dynamicFlow: any;
-    shouldShowField: (fieldConfig: FieldConfig, localData: Record<string, any>, globalData: Record<string, any>) => boolean;
+    shouldShowField: (fieldConfig: FieldConfig, localData: Record<string, any>, globalData: Record<string, any>, itemData?: Record<string, any>) => boolean;
     localData: Record<string, any>;
     globalData: Record<string, any>;
+    itemData?: Record<string, any>;
 }
 
-const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, localData, globalData }) => {
-    if (!shouldShowField(fieldConfig, localData, globalData)) {
+const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, localData, globalData, itemData }) => {
+    if (!shouldShowField(fieldConfig, localData, globalData, itemData)) {
         return null;
     }
 
@@ -94,7 +95,15 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                     case 'file':
                         return <FileField {...commonProps} />;
                     case 'repeatable':
-                        return <RepeatableFieldComponent form={form} fieldConfig={fieldConfig as RepeatableField} dynamicFlow={dynamicFlow} error={form.getFieldMeta(fieldConfig.name as any)?.errors[0]} shouldShowField={shouldShowField} localData={localData} globalData={globalData} />;
+                        return <RepeatableFieldComponent
+                            form={form}
+                            fieldConfig={fieldConfig as RepeatableField}
+                            dynamicFlow={dynamicFlow}
+                            error={field.state.meta.errors?.[0]}
+                            shouldShowField={shouldShowField}
+                            localData={localData}
+                            globalData={globalData}
+                        />;
                     case 'dynamic-flow':
                         return <DynamicFlowFieldComponent field={field} fieldConfig={fieldConfig as DynamicFlowField} flowState={dynamicFlow.flowsState[field.name]} initializeFlow={dynamicFlow.initializeFlow} handleStepChange={dynamicFlow.handleStepChange} error={commonProps.error} />;
                     default:

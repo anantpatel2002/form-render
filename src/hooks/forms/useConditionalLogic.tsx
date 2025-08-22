@@ -9,21 +9,29 @@ const get = (obj: any, path: string, defaultValue: any = undefined) => {
             .call(path, regexp)
             .filter(Boolean)
             .reduce((res, key) => (res !== null && res !== undefined ? res[key] : res), obj);
-    const result = travel(/[,[\]]+?/) || travel(/[,[\].]+?/);
+    const result = travel(/[,[\\]]+?/) || travel(/[,[\\].]+?/);
     return result === undefined || result === obj ? defaultValue : result;
 };
 
 const checkCondition = (
     condition: { field: string, operator: string, value: any },
     localData: Record<string, any>,
-    globalData: Record<string, any>
+    globalData: Record<string, any>,
+    itemData?: Record<string, any>
 ): boolean => {
     const { field, operator, value } = condition;
 
-    let fieldValue = get(localData, field);
+    let fieldValue;
 
-    if (fieldValue === undefined) {
-        fieldValue = get(globalData, field);
+    // 1. Prioritize looking for the dependency's value in the specific item's data.
+    if (itemData && field in itemData) {
+        fieldValue = itemData[field];
+    } else {
+        // 2. Fallback to the main form data if not found in the item.
+        fieldValue = get(localData, field);
+        if (fieldValue === undefined) {
+            fieldValue = get(globalData, field);
+        }
     }
 
     switch (operator) {
@@ -52,7 +60,8 @@ export const useConditionalLogic = () => {
     const shouldShowField = useCallback((
         fieldConfig: FieldConfig,
         localData: Record<string, any>,
-        globalData: Record<string, any>
+        globalData: Record<string, any>,
+        itemData?: Record<string, any>
     ): boolean => {
         if (!fieldConfig.showWhen) {
             return true;
@@ -61,11 +70,11 @@ export const useConditionalLogic = () => {
         const { logic = 'and', conditions } = fieldConfig.showWhen;
 
         if (logic === 'and') {
-            return conditions.every(condition => checkCondition(condition, localData, globalData));
+            return conditions.every(condition => checkCondition(condition, localData, globalData, itemData));
         }
 
         if (logic === 'or') {
-            return conditions.some(condition => checkCondition(condition, localData, globalData));
+            return conditions.some(condition => checkCondition(condition, localData, globalData, itemData));
         }
 
         return true;

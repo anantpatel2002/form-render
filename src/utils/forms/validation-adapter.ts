@@ -15,7 +15,6 @@ export const createValidator = (rules?: ValidationRules) => {
     }
 
     const formData = fieldApi.form.state.values;
-    console.log("formData for validation", formData);
 
 
     if (rules.required?.value && !value) {

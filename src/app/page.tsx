@@ -1144,6 +1144,7 @@ const App = () => {
         "addButtonLabel": "➕ Add Emergency Contact",
         "removeButtonLabel": "❌ Remove Contact",
         "maxItems": 3,
+        "columns":2,
         "validation": {
           "min": {
             "value": 1,
@@ -1169,7 +1170,8 @@ const App = () => {
                 "value": 2,
                 "message": "Name must be at least 2 characters long."
               }
-            }
+            },
+            "defaultValue":"John Cena"
           },
           {
             "name": "contactPhone",
