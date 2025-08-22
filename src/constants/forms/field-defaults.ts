@@ -6,7 +6,7 @@ import { VALIDATION_PATTERNS } from './validation-rules';
  */
 export const FIELD_DEFAULTS = {
     /**
-     * Default configuration for an email field.
+     * For an email field.
      */
     EMAIL: (name = 'email', label = 'Email Address'): Field => ({
         name,
@@ -19,7 +19,7 @@ export const FIELD_DEFAULTS = {
         },
     }),
     /**
-     * Default configuration for a password field with strength meter.
+     * For a password field with strength meter.
      */
     PASSWORD: (name = 'password', label = 'Password'): Field => ({
         name,

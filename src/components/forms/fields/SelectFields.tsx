@@ -10,8 +10,6 @@ interface SimplifiedFieldApi {
     state: { value: any };
     handleChange: (value: any) => void;
 }
-
-// The props now include the full form's data
 interface SelectFieldProps {
     field: SimplifiedFieldApi;
     error?: string;
@@ -31,7 +29,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ field, error, isMulti 
     const dependencyField = optionsSource?.dependsOn as string;
     const dependencyValue = dependencyField ? formData[dependencyField] : null;
 
-    // --- FIX #1: This hook now depends on the dependency's value ---
     useEffect(() => {
         // Don't fetch if there's no source
         if (!optionsSource) return;
@@ -59,10 +56,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({ field, error, isMulti 
         fetchOptions();
     }, [optionsSource, dependencyField, dependencyValue, field.name]); // Re-run when the dependency's value changes
 
-    // --- FIX #2: Add a hook to reset this field when its dependency changes ---
     useEffect(() => {
-        // This isn't the initial render and the dependency has changed
-        // We must reset our own value to prevent stale data
         if (field.state.value !== undefined) {
             field.handleChange(undefined);
         }
@@ -70,7 +64,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ field, error, isMulti 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dependencyValue]);
 
-    // Helper function to render the display value
     const renderDisplayValue = () => {
         const currentOptions = dynamicOptions !== null ? dynamicOptions : (staticOptions || []);
 
@@ -92,7 +85,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({ field, error, isMulti 
     };
 
     const handleSelect = (optionValue: string) => {
-        // This logic also remains the same
         if (isMulti) {
             const currentValue = Array.isArray(field.state.value) ? field.state.value : [];
             const newValue = currentValue.includes(optionValue)

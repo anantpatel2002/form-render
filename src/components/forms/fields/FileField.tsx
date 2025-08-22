@@ -2,9 +2,6 @@
 import React from 'react';
 import BaseField from './BaseField';
 import { Upload, X, File as FileIcon } from 'lucide-react';
-
-// Using the SimplifiedFieldApi interface from another file
-// You can also define it here if you prefer
 interface SimplifiedFieldApi {
     name: string;
     state: { value: any };

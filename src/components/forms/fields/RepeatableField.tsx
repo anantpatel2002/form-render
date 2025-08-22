@@ -3,8 +3,6 @@ import React from 'react';
 import { DynamicFlowField, Field as FieldConfig, RepeatableField as RepeatableFieldConfig } from '@/types/forms';
 import { Plus, Trash2 } from 'lucide-react';
 import BaseField from './BaseField';
-
-// Import all the UI components that can be used inside a repeatable section
 import { InputField, PasswordField, TextareaField } from './TextFields';
 import { CheckboxGroupField, RadioGroupField, SingleCheckboxField, SwitchField } from './ChoiceFields';
 import { SelectField } from './SelectFields';

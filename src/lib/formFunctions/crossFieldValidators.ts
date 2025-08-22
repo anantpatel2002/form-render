@@ -11,7 +11,6 @@ export const matchesDob = (values: Record<string, any>): boolean => {
 
     const birthDate = new Date(dob);
     const today = new Date();
-    // --- FIX: Corrected 'birth' to 'birthDate' ---
     let calculatedAge = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {

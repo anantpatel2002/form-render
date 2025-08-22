@@ -2,8 +2,6 @@
 import React from 'react';
 import { Field as FieldConfig, SectionField, RepeatableField, DynamicFlowField } from '@/types/forms/field-types';
 import { createValidator } from '@/utils/forms/validation-adapter';
-
-// Import all your field components
 import { InputField, PasswordField, TextareaField, DateField, NumberField } from './fields/TextFields';
 import { RadioGroupField, SingleCheckboxField, CheckboxGroupField, SwitchField } from './fields/ChoiceFields';
 import { SelectField } from './fields/SelectFields';
@@ -26,7 +24,6 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
         return null;
     }
 
-    // Handle structural components first, as they don't use the 'useField' hook directly.
     if (fieldConfig.type === 'section') {
         const sectionConfig = fieldConfig as SectionField;
         return (
@@ -97,7 +94,6 @@ const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, 
                     case 'file':
                         return <FileField {...commonProps} />;
                     case 'repeatable':
-                        // RepeatableField manages its own fields, so it doesn't use the top-level 'field' instance
                         return <RepeatableFieldComponent form={form} fieldConfig={fieldConfig as RepeatableField} dynamicFlow={dynamicFlow} error={form.getFieldMeta(fieldConfig.name as any)?.errors[0]} shouldShowField={shouldShowField} localData={localData} globalData={globalData} />;
                     case 'dynamic-flow':
                         return <DynamicFlowFieldComponent field={field} fieldConfig={fieldConfig as DynamicFlowField} flowState={dynamicFlow.flowsState[field.name]} initializeFlow={dynamicFlow.initializeFlow} handleStepChange={dynamicFlow.handleStepChange} error={commonProps.error} />;

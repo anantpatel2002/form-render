@@ -1,6 +1,5 @@
 import { getCountries, getStatesByCountry } from './location-functions';
 // Import other functions from other files as you create them
-// import { getProducts } from './product-functions';
 
 /**
  * A map of all available dynamic data-fetching functions.
@@ -9,5 +8,4 @@ import { getCountries, getStatesByCountry } from './location-functions';
 export const functionsMap: { [key: string]: (...args: any[]) => Promise<any> } = {
     getCountries,
     getStatesByCountry,
-    // getProducts,
 };

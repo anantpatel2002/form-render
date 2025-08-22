@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback } from 'react';
 import { FieldOption, DynamicFlowField } from '@/types/forms';
-import { getFunctionByName } from '@/lib/dynamicFunctionLoader'; // Your dynamic loader
+import { getFunctionByName } from '@/lib/dynamicFunctionLoader';
 
 // Define the shape of our state
 interface FlowStepState {
@@ -16,7 +16,7 @@ interface AllFlowsState {
 export const useDynamicFlow = () => {
     const [flowsState, setFlowsState] = useState<AllFlowsState>({});
 
-    // Function to set up the initial state for a flow field
+    // Set up the initial state for a flow field
     const initializeFlow = useCallback(async (fieldConfig: DynamicFlowField) => {
         const fieldName = fieldConfig.name;
         const firstStep = fieldConfig.flow[0];
@@ -44,7 +44,6 @@ export const useDynamicFlow = () => {
         const currentStepIndex = fieldConfig.flow.findIndex(s => s.id === stepId);
         if (currentStepIndex === -1) return;
 
-        // 1. Update the value for the step that just changed
         setFlowsState(prev => ({
             ...prev,
             [fieldName]: {
@@ -53,7 +52,6 @@ export const useDynamicFlow = () => {
             },
         }));
 
-        // 2. Reset all subsequent steps
         for (let i = currentStepIndex + 1; i < fieldConfig.flow.length; i++) {
             const stepToReset = fieldConfig.flow[i];
             setFlowsState(prev => ({
@@ -65,14 +63,14 @@ export const useDynamicFlow = () => {
             }));
         }
 
-        // 3. If this was the last step, update the main form value
+        // If this was the last step, update the main form value
         if (currentStepIndex === fieldConfig.flow.length - 1) {
             tanstackField.handleChange(newValue);
         } else {
             // Otherwise, clear the main form value
             tanstackField.handleChange(undefined);
 
-            // 4. Load options for the NEXT step
+            // Load options for the NEXT step
             if (newValue) {
                 const nextStep = fieldConfig.flow[currentStepIndex + 1];
                 setFlowsState(prev => ({

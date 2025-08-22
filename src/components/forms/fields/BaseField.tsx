@@ -1,8 +1,6 @@
 "use client";
 import React from 'react';
 import { Info, AlertCircle } from 'lucide-react';
-
-// A new, more flexible interface for the props
 interface BaseFieldProps {
     field: {
         name: string;

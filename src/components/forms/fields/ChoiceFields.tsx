@@ -2,8 +2,6 @@
 import React from 'react';
 import BaseField from './BaseField';
 import { FieldOption } from '@/types/forms';
-
-// A simplified interface for the props these components will receive
 interface SimplifiedFieldApi {
     name: string;
     state: { value: any };
@@ -58,7 +56,7 @@ export const CheckboxGroupField: React.FC<ChoiceFieldProps> = ({ field, label, e
                     <label key={option.value} className="flex items-center cursor-pointer">
                         <input
                             type="checkbox"
-                            name={`${field.name}-${option.value}`} // Unique name for each checkbox
+                            name={`${field.name}-${option.value}`}
                             value={option.value}
                             checked={(Array.isArray(field.state.value) && field.state.value.includes(option.value)) || false}
                             onChange={() => handleChange(option.value)}
@@ -72,7 +70,6 @@ export const CheckboxGroupField: React.FC<ChoiceFieldProps> = ({ field, label, e
     );
 };
 
-// --- RENAMED for clarity ---
 // Renders a single checkbox, often used as a boolean toggle
 export const SingleCheckboxField: React.FC<ChoiceFieldProps> = ({ field, label, error }) => {
     return (

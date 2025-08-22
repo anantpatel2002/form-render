@@ -3,10 +3,8 @@ import React, { useEffect } from 'react';
 import { DynamicFlowField, FieldOption } from '@/types/forms';
 import { Loader2 } from 'lucide-react';
 import BaseField from './BaseField';
-
-// The props our component will receive
 interface DynamicFlowFieldProps {
-    field: any; // The field object from TanStack Form
+    field: any;
     fieldConfig: DynamicFlowField;
     flowState: { [stepId: string]: { value: string; options: FieldOption[]; loading: boolean; } };
     initializeFlow: (fieldConfig: DynamicFlowField) => void;

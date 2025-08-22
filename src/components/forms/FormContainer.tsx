@@ -49,11 +49,6 @@ const FormContainer: React.FC<FormContainerProps> = ({
               const IconComponent = iconMap[step.icon as keyof typeof iconMap] || CheckCircle;
 
               return (
-                // <li key={step.id} className={`flex w-full items-center ${index < formConfig.steps!.length - 1 ? "after:content-[''] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:inline-block" : ""}`}>
-                //   <span className={`flex items-center justify-center w-10 h-10 rounded-full shrink-0 ${isCompleted ? 'bg-blue-600 text-white' : isCurrent ? 'bg-blue-100 text-blue-600 border-2 border-blue-600' : 'bg-gray-100 text-gray-500'}`}>
-                //     {isCompleted ? <Check size={20} /> : <IconComponent size={20} />}
-                //   </span>
-                // </li>
 
                 <div key={step.id} className="flex items-center">
                   <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${isCompleted ? 'bg-green-500 border-green-500 text-white' :
@@ -97,11 +92,10 @@ const FormContainer: React.FC<FormContainerProps> = ({
                 Previous
               </button>
 
-              {/* --- THIS IS THE FIX --- */}
               {/* Use a single button for both "Next" and "Submit" */}
               <button
                 type={isLastStep ? 'submit' : 'button'}
-                onClick={isLastStep ? undefined : onNext} // The 'onClick' now passes the event
+                onClick={isLastStep ? undefined : onNext}
                 disabled={isLastStep ? !isValid || isSubmitting : false}
                 className="inline-flex items-center justify-center px-6 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >

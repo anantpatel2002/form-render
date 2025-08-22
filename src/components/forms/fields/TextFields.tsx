@@ -1,9 +1,7 @@
 "use client";
-import React, { useState } from 'react'; // Added useState for PasswordField
+import React, { useState } from 'react';
 import BaseField from './BaseField';
 import { Eye, EyeOff } from 'lucide-react';
-
-// Make sure this interface is at the top of your file
 interface TextFieldProps {
     field: any;
     label: string;

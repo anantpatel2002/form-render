@@ -6,7 +6,6 @@ interface UseConditionalFieldsReturn {
 }
 
 export const useConditionalFields = (formData: FormData): UseConditionalFieldsReturn => {
-  // Check if field should be shown based on conditions
   const shouldShowField = useCallback((field: Field, repeatableParent?: string, index?: number): boolean => {
     if (!field.showWhen) return true;
 

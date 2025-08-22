@@ -12,8 +12,6 @@ export const useDynamicOptions = (formConfig: FormConfig, formData: FormData): U
   const [dynamicOptionsMap, setDynamicOptionsMap] = useState<{ [key: string]: FieldOption[] }>({});
   const [loadingOptionsMap, setLoadingOptionsMap] = useState<{ [key: string]: boolean }>({});
 
-  // In useDynamicOptions.ts
-
   const loadOptions = useCallback(async (optionsSource: OptionsSource, dependsOnValue: any = null): Promise<FieldOption[]> => {
     try {
       // 1. Asynchronously get the function using the loader
