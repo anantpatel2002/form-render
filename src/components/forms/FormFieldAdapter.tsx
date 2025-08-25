@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Field as FieldConfig, SectionField, RepeatableField, DynamicFlowField } from '@/types/forms/field-types';
 import { createValidator } from '@/utils/forms/validation-adapter';
 import { InputField, PasswordField, TextareaField, DateField, NumberField } from './fields/TextFields';
@@ -21,7 +21,18 @@ interface FormFieldAdapterProps {
 }
 
 const FormFieldAdapter: React.FC<FormFieldAdapterProps> = ({ form, fieldConfig, dynamicFlow, shouldShowField, localData, globalData, itemData }) => {
-    if (!shouldShowField(fieldConfig, localData, globalData, itemData)) {
+    // 1. First, determine if the field should be visible right now.
+    const isVisible = shouldShowField(fieldConfig, localData, globalData, itemData);
+
+    // 2. Use a side effect to manage the field's state when its visibility changes.
+    useEffect(() => {
+        if (!isVisible) {
+            form.resetField(fieldConfig.name as any);
+        }
+    }, [isVisible, form, fieldConfig.name]);
+
+    // 3. If the field is not visible, render nothing.
+    if (!isVisible) {
         return null;
     }
 
